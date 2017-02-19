@@ -100,6 +100,21 @@ DemoToast/
 
 @end
 ```
+### En el archivo `plugin.xml`
+```xml
+<plugin
+    // etc.....
+    <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="DemoToast">
+                <param name="ios-package" value="DemoToast" />
+            </feature>
+        </config-file>
+        <source-file src="src/ios/DemoToast.m" />
+        <source-file src="src/ios/DemoToast.h" />
+    </platform>
+</plugin>
+```
 ### En el archivo `src/ios/DemoToast.m`
 ```cpp
 #import "DemoToast.h"
