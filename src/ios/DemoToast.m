@@ -1,28 +1,37 @@
 /********* DemoToast.m Cordova Plugin Implementation *******/
-
+#import "DemoToast.h"
 #import <Cordova/CDV.h>
-
-@interface DemoToast : CDVPlugin {
-  // Member variables go here.
-}
-
-- (void)coolMethod:(CDVInvokedUrlCommand*)command;
-@end
 
 @implementation DemoToast
 
-- (void)coolMethod:(CDVInvokedUrlCommand*)command
+- (void)show:(CDVInvokedUrlCommand*)command
 {
-    CDVPluginResult* pluginResult = nil;
-    NSString* echo = [command.arguments objectAtIndex:0];
+  CDVPluginResult* pluginResult = nil;
+  NSString* msg = [command.arguments objectAtIndex:0];
 
-    if (echo != nil && [echo length] > 0) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:echo];
-    } else {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-    }
+  if (msg == nil || [msg length] == 0) {
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+  } else {
+    UIAlertView *toast = [
+      [UIAlertView alloc] initWithTitle:@""
+        message:msg
+        delegate:nil
+        cancelButtonTitle:nil
+        otherButtonTitles:nil, nil];
 
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    [toast show];
+        
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), 
+    dispatch_get_main_queue(), ^{
+      [toast dismissWithClickedButtonIndex:0 animated:YES];
+    });
+        
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK 
+    messageAsString:msg];
+  }
+
+  [self.commandDelegate sendPluginResult:pluginResult 
+  callbackId:command.callbackId];
 }
 
 @end

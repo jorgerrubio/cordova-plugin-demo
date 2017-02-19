@@ -7,18 +7,16 @@ $ npm install -g plugman
 $ plugman create --name DemoToast --plugin_id cordova.plugin.DemoToast  --plugin_version 0.0.1
 ```
 
-el comando crea una carpeta 'DemoToast'
-
-```sh
-$ cd DemoToast
-$ plugman platform add --platform_name [android|ios]
 ```
-
-el comando crea una carpeta 'src/android' o 'src/ios' y añade la configuracion al archivo 'plugin.xml'
+DemoToast/
+    |-src/
+    |-www/
+        |-DemoToast.js
+```
 
 ## en este ejemplo vamos hacer uso del **Toast**
 
-en el archivo `www/DemoToast.js`
+#### en el archivo `www/DemoToast.js`
 
 ```javascript
 var exec = require('cordova/exec');
@@ -27,7 +25,22 @@ exports.show = function(arg0, success, error) {
     exec(success, error, "DemoToast", "show", [arg0]);
 };
 ```
-en el archivo `src/android/DemoToast.java`
+#### añadimos la plataforma android
+```sh
+$ cd DemoToast
+$ plugman platform add --platform_name android
+```
+
+#### el comando `plugman platform add --platform_name [android|ios]` crea una carpeta 'src/android' o 'src/ios' y añade la configuracion al archivo 'plugin.xml'
+```
+DemoToast/
+    |-src/
+        |-android/
+            |-DemoToast.java
+    |-www/
+        |-DemoToast.js
+```
+#### en el archivo `src/android/DemoToast.java`
 ```java
 package cordova.plugin.demotoast;
 
@@ -60,7 +73,72 @@ public class DemoToast extends CordovaPlugin {
     }
 }
 ```
+#### añadimos la plataforma ios
+```sh
+$ cd DemoToast
+$ plugman platform add --platform_name ios
+```
 
+```
+DemoToast/
+    |-src/
+        |-android/
+            |-DemoToast.java
+        |-ios/
+            |-DemoToast.m
+    |-www/
+        |-DemoToast.js
+```
+
+### En la carpeta `src/ios` creamos el archivo `DemoToast.h` y pegamos
+```c
+#import <Cordova/CDV.h>
+
+@interface DemoToast : CDVPlugin
+
+- (void)show:(CDVInvokedUrlCommand*)command;
+
+@end
+```
+### En el archivo `src/ios/DemoToast.m`
+```cpp
+#import "DemoToast.h"
+#import <Cordova/CDV.h>
+
+@implementation DemoToast
+
+- (void)show:(CDVInvokedUrlCommand*)command
+{
+  CDVPluginResult* pluginResult = nil;
+  NSString* msg = [command.arguments objectAtIndex:0];
+
+  if (msg == nil || [msg length] == 0) {
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+  } else {
+    UIAlertView *toast = [
+      [UIAlertView alloc] initWithTitle:@""
+        message:msg
+        delegate:nil
+        cancelButtonTitle:nil
+        otherButtonTitles:nil, nil];
+
+    [toast show];
+        
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), 
+    dispatch_get_main_queue(), ^{
+      [toast dismissWithClickedButtonIndex:0 animated:YES];
+    });
+        
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK 
+    messageAsString:msg];
+  }
+
+  [self.commandDelegate sendPluginResult:pluginResult 
+  callbackId:command.callbackId];
+}
+
+@end
+```
 ## crear un proyecto [ionic](http://ionicframework.com/docs/v2/intro/installation/ "Documentacion ionic") en otra carpeta
 
 ### **Para crear proyectos ionic 2**, tendrá que instalar la última versión de ionic CLI y Córdoba. Antes de hacer esto, necesitará una versión reciente de Node.js. [Descargar el instalador](https://nodejs.org/ "Node.js") para Node.js 6 o superior y luego proceder a instalar el ionic CLI y Córdoba para el desarrollo de aplicaciones nativas:
@@ -75,6 +153,7 @@ $ cd demotoast
 #### se hace como cualquier otro plugin de cordova
 ```sh
 $ ionic platform add android
+$ ionic platform add ios
 $ ionic plugin add ..\DemoToast\ --save
 ```
 ### Ejemplo de uso del plugin creado en ionic 2
@@ -112,5 +191,6 @@ showMessage() {
 #### con un emulador o dispositivo conectado por usb
 ```sh
 $ ionic run android
+$ ionic emulate ios
 ```
 
